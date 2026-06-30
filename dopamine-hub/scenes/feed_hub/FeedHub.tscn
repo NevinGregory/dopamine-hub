@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://b81j1qn6hahtq"]
+
+[ext_resource type="Script" uid="uid://8hcdbgf10b3l" path="res://scripts/feed_hub/FeedHub.gd" id="1_"]
+
+[node name="FeedHub" type="Control" unique_id=1846680104]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_")
