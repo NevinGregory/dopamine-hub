@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://bxy8mk0vch307"]
+
+[node name="ApexClimb" type="Node2D" unique_id=2026868280]
+
+[node name="Control" type="Control" parent="." unique_id=2050827957]
+custom_minimum_size = Vector2(1080, 1920)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ColorRect" type="ColorRect" parent="Control" unique_id=215877313]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
