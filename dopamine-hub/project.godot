@@ -13,7 +13,6 @@ config_version=5
 config/name="DopamineHub"
 run/main_scene="res://scenes/feed_hub/FeedHub.tscn"
 config/features=PackedStringArray("4.6", "Mobile")
-config/icon="res://icon.svg"
 
 [autoload]
 

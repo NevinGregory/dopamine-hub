@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://csx2m0abe0hj5"]
+
+[ext_resource type="Script" uid="uid://l66ykba0uoq2" path="res://scripts/games/pirate_duel/Cannonball.gd" id="1_s7t2g"]
+[ext_resource type="Texture2D" uid="uid://b3bue3r0yvdt1" path="res://assets/art/cannonball.png" id="2_teycj"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cqri0"]
+radius = 26.0
+
+[node name="Cannonball" type="Area2D" unique_id=1829332216]
+collision_layer = 2
+collision_mask = 3
+script = ExtResource("1_s7t2g")
+
+[node name="Sprite" type="Sprite2D" parent="." unique_id=652429610]
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("2_teycj")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=774213359]
+shape = SubResource("CircleShape2D_cqri0")

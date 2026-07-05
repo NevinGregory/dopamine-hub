@@ -9,7 +9,7 @@ This document contains the core architecture and specific logic prompts required
 > "Write a Godot 4 GDScript for a 'Feed Hub' system.
 > 1. **Setup:** The scene root is a `ScrollContainer` with a `VBoxContainer` child.
 > 2. **Injection:** Create an array of 6 scene paths. Loop through them and instantiate each as a child of the `VBoxContainer`.
-> 3. **Ad Insertion:** After every 4 game scenes, instantiate and insert an `AdCard.tscn` scene.
+> 3. **Ad Insertion:** After every 2-4 game scenes, instantiate and insert an `AdCard.tscn` scene.
 > 4. **Snapping:** Implement a snapping scroll effect. Use a `Tween` to lerp `scroll_vertical` to the nearest `viewport_height` whenever the user stops scrolling (detected by a `Timer` that resets on `scroll_changed`).
 > 5. **Lazy Lifecycle:** Create `update_active_states()`. This checks which scene is centered in the `ScrollContainer`. Call `set_process(true)` / `set_physics_process(true)` on the centered scene, and `set_process(false)` / `set_physics_process(false)` on all others to save performance.
 > 6. **Isolation:** Each game container must be a `SubViewportContainer` to isolate input and prevent UI overlap."
@@ -30,8 +30,8 @@ This document contains the core architecture and specific logic prompts required
 ### Apex Climb (Infinite Climber)
 > "Create a physics climber. Player is a `RigidBody2D`. On tap-and-drag, create a `SpringJoint2D` anchor to a platform. On release, apply `LinearVelocity` in the flick direction. Generate platforms procedurally 200px above the highest platform. If player falls below the camera view, reset game."
 
-### Symmetry (Zen Order)
-> "Create 8 nodes in a circle. Each has rotation property [0, 90, 180, 270]. On click, rotate a node 90 degrees. Add `check_win()` function: if all nodes == 0 rotation, trigger win (particle burst, randomize board after 0.5s delay)."
+### Flow (Puzzle)
+> "Create a 5x5 grid-based pipe puzzle. Each cell contains a 'Pipe' object with rotation states [0, 90, 180, 270]. On click, rotate a pipe 90 degrees. Add validate_flow() function: recursively check if a path exists from the 'Source' tile to the 'Destination' tile by matching pipe connection points. If connected, trigger success animation and move to a new random configuration."
 
 ### Velocity Drift (Arcade Speed)
 > "Create a top-down racer. Player (CharacterBody2D) has constant forward velocity. Hold to 'Drift' (steer angle 45, speed 5). Release to 'Straight' (steer 0, speed 10). The road is a `Path2D`. If player hits the road edge collision boundary while in 'Straight' mode, `game_over()`."

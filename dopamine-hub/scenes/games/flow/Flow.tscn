@@ -1,0 +1,81 @@
+[gd_scene format=3 uid="uid://d22w22fobuh4w"]
+
+[ext_resource type="Script" uid="uid://b3soqx7wa701n" path="res://scripts/games/flow/Flow.gd" id="1_8r4li"]
+[ext_resource type="Texture2D" uid="uid://4rpq2ifphlw2" path="res://assets/art/gear.png" id="3_v8rag"]
+[ext_resource type="AudioStream" uid="uid://byqpx4lkgr86k" path="res://assets/audio/bong_001.ogg" id="4_10efb"]
+[ext_resource type="AudioStream" uid="uid://c72fg47ktwjxy" path="res://assets/audio/click.wav" id="4_an1w5"]
+[ext_resource type="AudioStream" uid="uid://bpk8dmx3dvcnh" path="res://assets/audio/confirmation_004.ogg" id="5_10efb"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_6ijjf"]
+font_size = 48
+
+[node name="Flow" type="Node2D" unique_id=1375818215]
+script = ExtResource("1_8r4li")
+
+[node name="Control" type="Control" parent="." unique_id=957421715]
+custom_minimum_size = Vector2(1080, 1920)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1080.0
+offset_bottom = 1920.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="Control" unique_id=101350147]
+z_index = -1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0.21568628, 0.29803923, 1)
+
+[node name="LevelLabel" type="Label" parent="Control" unique_id=78640943]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -80.0
+offset_top = 21.0
+offset_right = 80.0
+offset_bottom = 88.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Level 1"
+label_settings = SubResource("LabelSettings_6ijjf")
+horizontal_alignment = 1
+
+[node name="Gear" type="Sprite2D" parent="." unique_id=1226412681]
+z_index = -1
+position = Vector2(105.25, 815.25)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("3_v8rag")
+
+[node name="Gear2" type="Sprite2D" parent="." unique_id=1102246691]
+z_index = -1
+position = Vector2(953.25, 1189.25)
+texture = ExtResource("3_v8rag")
+
+[node name="Click" type="AudioStreamPlayer2D" parent="." unique_id=303468294]
+stream = ExtResource("4_an1w5")
+
+[node name="FlowIn" type="AudioStreamPlayer2D" parent="." unique_id=2071184980]
+stream = ExtResource("4_10efb")
+
+[node name="SolvedSound" type="AudioStreamPlayer2D" parent="." unique_id=1064992784]
+stream = ExtResource("5_10efb")
+
+[node name="Cover" type="ColorRect" parent="." unique_id=946404341]
+z_index = 2
+custom_minimum_size = Vector2(1080, 1920)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1080.0
+offset_bottom = 1920.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0.21568628, 0.29803923, 1)

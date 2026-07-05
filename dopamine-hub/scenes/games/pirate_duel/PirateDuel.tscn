@@ -1,19 +1,197 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://b504u0j6hw4xt"]
 
-[node name="PirateDuel" type="Node2D"]
+[ext_resource type="Texture2D" uid="uid://8hcp6qmukwcn" path="res://assets/art/perfect_tap_ball.png" id="1_1pk50"]
+[ext_resource type="Texture2D" uid="uid://872f4k2xst7k" path="res://assets/art/ship.png" id="1_gedw8"]
+[ext_resource type="Script" uid="uid://cpjotjc61spkn" path="res://scripts/games/pirate_duel/PirateDuel.gd" id="2_5h0ov"]
+[ext_resource type="PackedScene" uid="uid://csx2m0abe0hj5" path="res://scenes/games/pirate_duel/Cannonball.tscn" id="2_n7dbl"]
+[ext_resource type="LabelSettings" uid="uid://cw3tobu510lk" path="res://assets/godot_resources/pirate_duel_settings.tres" id="3_b5w7d"]
+[ext_resource type="Script" uid="uid://dw4c82r3b0i68" path="res://scripts/games/pirate_duel/Ship.gd" id="5_wq7k9"]
+[ext_resource type="Texture2D" uid="uid://f8fbl8vy83es" path="res://assets/art/wave3.png" id="7_uttrp"]
+[ext_resource type="Texture2D" uid="uid://delfiv8hebvpw" path="res://assets/art/wave2.png" id="8_alxbp"]
+[ext_resource type="Texture2D" uid="uid://j2empt16wgjh" path="res://assets/art/waves1.png" id="9_b5w7d"]
+[ext_resource type="Texture2D" uid="uid://d0p6bmotjonq4" path="res://assets/art/cloud.png" id="9_uttrp"]
+[ext_resource type="Texture2D" uid="uid://r4fhelyb6hag" path="res://assets/art/curtains.png" id="10_alxbp"]
+[ext_resource type="AudioStream" uid="uid://d0pnt50bhrhet" path="res://assets/audio/pirate_ambience.mp3" id="12_xro3y"]
+[ext_resource type="AudioStream" uid="uid://cfqecmh77n3am" path="res://assets/audio/pop.wav" id="13_jj1eg"]
+[ext_resource type="AudioStream" uid="uid://cgym4jmoc7rgt" path="res://assets/audio/explosion.wav" id="14_jj1eg"]
 
-[node name="Control" type="Control" parent="."]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_m72da"]
+size = Vector2(554.9166, 227.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_uttrp"]
+size = Vector2(571.2501, 230.6665)
+
+[sub_resource type="Gradient" id="Gradient_o1nuj"]
+offsets = PackedFloat32Array(0, 0.5778689)
+colors = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ewuua"]
+gradient = SubResource("Gradient_o1nuj")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_eh7hk"]
+particle_flag_disable_z = true
+emission_shape = 6
+emission_ring_axis = Vector3(0, 0, 1)
+emission_ring_height = 1.0
+emission_ring_radius = 50.0
+emission_ring_inner_radius = 30.0
+emission_ring_cone_angle = 90.0
+spread = 180.0
+radial_velocity_min = 199.99997
+radial_velocity_max = 299.99997
+gravity = Vector3(0, 0, 0)
+scale_min = 0.099999994
+scale_max = 0.19999999
+color = Color(0, 0, 0, 1)
+color_ramp = SubResource("GradientTexture1D_ewuua")
+
+[node name="PirateDuel" type="Node2D" unique_id=1680760171]
+script = ExtResource("2_5h0ov")
+cannonball_scene = ExtResource("2_n7dbl")
+
+[node name="Control" type="Control" parent="." unique_id=690141664]
 custom_minimum_size = Vector2(1080, 1920)
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="ColorRect" type="ColorRect" parent="Control"]
+[node name="ColorRect" type="ColorRect" parent="Control" unique_id=1590507098]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.4, 0.6, 1, 1)
+
+[node name="PlayerHP" type="Label" parent="Control/ColorRect" unique_id=1465994799]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 30.0
+offset_top = -104.0
+offset_right = 218.0
+offset_bottom = -56.0
+grow_vertical = 2
+text = "10"
+label_settings = ExtResource("3_b5w7d")
+
+[node name="EnemyHP" type="Label" parent="Control/ColorRect" unique_id=901217868]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -219.0
+offset_top = -104.0
+offset_right = -31.0
+offset_bottom = -56.0
+grow_horizontal = 0
+grow_vertical = 2
+text = "10"
+label_settings = ExtResource("3_b5w7d")
+horizontal_alignment = 2
+
+[node name="StatusLabel" type="Label" parent="Control/ColorRect" unique_id=20561189]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -66.0
+offset_top = 127.0
+offset_right = 47.0
+offset_bottom = 161.0
+grow_horizontal = 2
+text = "YOU WIN!"
+
+[node name="Ship" type="Area2D" parent="." unique_id=246335558 groups=["player_ship"]]
+position = Vector2(50, 1426)
+scale = Vector2(0.6, 0.6)
+collision_mask = 2
+script = ExtResource("5_wq7k9")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ship" unique_id=1610191253]
+position = Vector2(3.3333359, 406.66675)
+shape = SubResource("RectangleShape2D_m72da")
+
+[node name="Ship" type="Sprite2D" parent="Ship" unique_id=685892711]
+texture = ExtResource("1_gedw8")
+
+[node name="ShipAI" type="Area2D" parent="." unique_id=1798344986 groups=["ai_ship"]]
+position = Vector2(1032, 1428)
+scale = Vector2(0.6, 0.6)
+collision_mask = 2
+script = ExtResource("5_wq7k9")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ShipAI" unique_id=1381914683]
+position = Vector2(18.333332, 426.66656)
+shape = SubResource("RectangleShape2D_uttrp")
+
+[node name="Ship" type="Sprite2D" parent="ShipAI" unique_id=938884967]
+texture = ExtResource("1_gedw8")
+
+[node name="AITimer" type="Timer" parent="." unique_id=1812410117]
+one_shot = true
+
+[node name="Particles" type="GPUParticles2D" parent="." unique_id=552999445]
+scale = Vector2(0.25, 0.25)
+emitting = false
+amount = 100
+texture = ExtResource("1_1pk50")
+one_shot = true
+explosiveness = 0.8
+process_material = SubResource("ParticleProcessMaterial_eh7hk")
+
+[node name="Wave3" type="Sprite2D" parent="." unique_id=1117795077]
+position = Vector2(538, 1789)
+texture = ExtResource("7_uttrp")
+
+[node name="Wave2" type="Sprite2D" parent="." unique_id=178339518]
+z_index = 1
+position = Vector2(540, 1816)
+texture = ExtResource("8_alxbp")
+
+[node name="Wave1" type="Sprite2D" parent="." unique_id=1344810525]
+z_index = 1
+position = Vector2(542, 1845)
+texture = ExtResource("9_b5w7d")
+
+[node name="Cloud2" type="Sprite2D" parent="." unique_id=1537770655]
+position = Vector2(843, 485)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("9_uttrp")
+
+[node name="Cloud" type="Sprite2D" parent="." unique_id=833711723]
+position = Vector2(230, 317)
+texture = ExtResource("9_uttrp")
+
+[node name="Curtains" type="Sprite2D" parent="." unique_id=1242919227]
+z_index = 2
+position = Vector2(540, -960)
+texture = ExtResource("10_alxbp")
+
+[node name="Ambience" type="AudioStreamPlayer2D" parent="." unique_id=314986870]
+stream = ExtResource("12_xro3y")
+autoplay = true
+
+[node name="CannonFire" type="AudioStreamPlayer2D" parent="." unique_id=339783015]
+stream = ExtResource("13_jj1eg")
+volume_db = -20.0
+
+[node name="CannonExplosion" type="AudioStreamPlayer2D" parent="." unique_id=1062705758]
+stream = ExtResource("14_jj1eg")
+
+[node name="Cover" type="ColorRect" parent="." unique_id=1497978623]
+z_index = 5
+custom_minimum_size = Vector2(1080, 1920)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1080.0
+offset_bottom = 1920.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.4, 0.6, 1, 1)

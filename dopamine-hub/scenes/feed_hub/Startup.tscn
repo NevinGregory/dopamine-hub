@@ -1,0 +1,89 @@
+[gd_scene format=3 uid="uid://cunf2kkrovoof"]
+
+[ext_resource type="FontFile" uid="uid://b7ql6sij7c6e5" path="res://assets/fonts/Forum-Regular.ttf" id="1_y3akl"]
+[ext_resource type="Texture2D" uid="uid://8aoc7yal6bvr" path="res://assets/art/down_arrow.png" id="2_npf65"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_npf65"]
+font = ExtResource("1_y3akl")
+font_size = 72
+
+[sub_resource type="LabelSettings" id="LabelSettings_audh6"]
+font = ExtResource("1_y3akl")
+font_size = 32
+
+[node name="Startup" type="Control" unique_id=603300947]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BG" type="ColorRect" parent="." unique_id=330143562]
+z_index = 2
+custom_minimum_size = Vector2(1080, 1920)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="BG" unique_id=1093042018]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="BG/VBoxContainer" unique_id=1163397017]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Dopamine Hub"
+label_settings = SubResource("LabelSettings_npf65")
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="BG" unique_id=80786745]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -36.0
+offset_top = -71.0
+offset_right = 36.0
+offset_bottom = -13.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Label" type="Label" parent="BG/VBoxContainer2" unique_id=1758144132]
+layout_mode = 2
+text = "Scroll"
+label_settings = SubResource("LabelSettings_audh6")
+
+[node name="TextureRect" type="TextureRect" parent="BG/VBoxContainer2" unique_id=975684869]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("2_npf65")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="Cover" type="ColorRect" parent="." unique_id=1518984889]
+z_index = 2
+custom_minimum_size = Vector2(1080, 1920)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)

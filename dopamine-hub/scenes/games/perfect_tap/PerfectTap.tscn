@@ -1,19 +1,139 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cysxmdkr0q2ai"]
 
-[node name="PerfectTap" type="Node2D"]
+[ext_resource type="Script" uid="uid://ctj36eefn3q3o" path="res://scripts/games/perfect_tap/PerfectTap.gd" id="1_"]
+[ext_resource type="Texture2D" uid="uid://8hcp6qmukwcn" path="res://assets/art/perfect_tap_ball.png" id="2_3kyqp"]
+[ext_resource type="Texture2D" uid="uid://uwbips3f3s5t" path="res://assets/art/perfect_tap_outline.png" id="2_qgucm"]
+[ext_resource type="AudioStream" uid="uid://b3y0t2esfy1wy" path="res://assets/audio/boop_f#.mp3" id="5_2fgpm"]
+[ext_resource type="AudioStream" uid="uid://5jvs6eoeabud" path="res://assets/audio/pluck_c.mp3" id="5_ewuua"]
+[ext_resource type="AudioStream" uid="uid://ctji01rbk3p4j" path="res://assets/audio/pluck_d.mp3" id="6_apc30"]
+[ext_resource type="AudioStream" uid="uid://cnn03cn7qh3sh" path="res://assets/audio/pluck_e.mp3" id="7_1k7p4"]
+[ext_resource type="AudioStream" uid="uid://cpf6tybdhbkow" path="res://assets/audio/pluck_g.mp3" id="8_vkurg"]
+[ext_resource type="AudioStream" uid="uid://cd82nvudwh06k" path="res://assets/audio/pluck_a.mp3" id="9_4ps2k"]
+[ext_resource type="AudioStream" uid="uid://b11cpff1dvi7u" path="res://assets/audio/pluck_c_high.mp3" id="10_pxc5o"]
 
-[node name="Control" type="Control" parent="."]
+[sub_resource type="LabelSettings" id="LabelSettings_3kyqp"]
+font_size = 72
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_3kyqp"]
+blend_mode = 1
+
+[sub_resource type="Gradient" id="Gradient_srlmo"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ewuua"]
+gradient = SubResource("Gradient_srlmo")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_2fgpm"]
+particle_flag_disable_z = true
+emission_shape = 6
+emission_ring_axis = Vector3(0, 0, 1)
+emission_ring_height = 1.0
+emission_ring_radius = 50.0
+emission_ring_inner_radius = 30.0
+emission_ring_cone_angle = 90.0
+spread = 180.0
+radial_velocity_min = 199.99997
+radial_velocity_max = 299.99997
+gravity = Vector3(0, 0, 0)
+scale_min = 0.02
+scale_max = 0.049999997
+color_ramp = SubResource("GradientTexture1D_ewuua")
+
+[node name="PerfectTap" type="Node2D" unique_id=1449174266]
+script = ExtResource("1_")
+orb_radius = 32.0
+outline_grow_duration = 10.0
+mid_curve_strength = 25000.0
+
+[node name="Background" type="ColorRect" parent="." unique_id=359053944]
 custom_minimum_size = Vector2(1080, 1920)
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="ColorRect" type="ColorRect" parent="Control"]
-layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 1080.0
+offset_bottom = 1920.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(1, 0.4, 0.4, 1)
+color = Color(0, 0, 0, 1)
+
+[node name="ScoreLabel" type="Label" parent="Background" unique_id=1252017302]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -7.0
+offset_top = 72.0
+offset_right = 7.0
+offset_bottom = 106.0
+grow_horizontal = 2
+text = "1"
+label_settings = SubResource("LabelSettings_3kyqp")
+
+[node name="TargetZone" type="Node2D" parent="." unique_id=1010760961]
+
+[node name="ZoneSprite" type="Sprite2D" parent="TargetZone" unique_id=264700607]
+
+[node name="OrbOutline" type="Sprite2D" parent="." unique_id=1885209843]
+visible = false
+material = SubResource("CanvasItemMaterial_3kyqp")
+position = Vector2(539, 990)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("2_qgucm")
+
+[node name="Particles" type="GPUParticles2D" parent="." unique_id=1024432790]
+position = Vector2(0, 990)
+scale = Vector2(0.25, 0.25)
+emitting = false
+amount = 100
+texture = ExtResource("2_3kyqp")
+one_shot = true
+explosiveness = 0.8
+process_material = SubResource("ParticleProcessMaterial_2fgpm")
+
+[node name="Orb" type="Sprite2D" parent="." unique_id=602989051]
+material = SubResource("CanvasItemMaterial_3kyqp")
+position = Vector2(0, 990)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("2_3kyqp")
+
+[node name="miss_sound" type="AudioStreamPlayer2D" parent="." unique_id=1048091168]
+stream = ExtResource("5_2fgpm")
+volume_db = -5.0
+
+[node name="hit_sounds" type="Node" parent="." unique_id=821326298]
+
+[node name="pluck" type="AudioStreamPlayer2D" parent="hit_sounds" unique_id=94075555]
+stream = ExtResource("5_ewuua")
+volume_db = -5.0
+
+[node name="pluck2" type="AudioStreamPlayer2D" parent="hit_sounds" unique_id=109829932]
+stream = ExtResource("6_apc30")
+volume_db = -5.0
+
+[node name="pluck3" type="AudioStreamPlayer2D" parent="hit_sounds" unique_id=1790362854]
+stream = ExtResource("7_1k7p4")
+volume_db = -5.0
+
+[node name="pluck4" type="AudioStreamPlayer2D" parent="hit_sounds" unique_id=1308171044]
+stream = ExtResource("8_vkurg")
+volume_db = -5.0
+
+[node name="pluck5" type="AudioStreamPlayer2D" parent="hit_sounds" unique_id=1785448251]
+stream = ExtResource("9_4ps2k")
+volume_db = -5.0
+
+[node name="pluck6" type="AudioStreamPlayer2D" parent="hit_sounds" unique_id=1840012824]
+stream = ExtResource("10_pxc5o")
+volume_db = -5.0
+
+[node name="Cover" type="ColorRect" parent="." unique_id=1827270556]
+z_index = 2
+custom_minimum_size = Vector2(1080, 1920)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1080.0
+offset_bottom = 1920.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)

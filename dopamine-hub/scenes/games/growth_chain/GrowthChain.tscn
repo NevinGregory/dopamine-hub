@@ -1,19 +1,148 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://c3fmqb1dbq4oq"]
 
-[node name="GrowthChain" type="Node2D"]
+[ext_resource type="Script" uid="uid://c44ky1hlx1ttu" path="res://scripts/games/growth_chain/GrowthChain.gd" id="1_"]
+[ext_resource type="Texture2D" uid="uid://g8sm20trfxlg" path="res://assets/art/bubble.png" id="2_l13vc"]
+[ext_resource type="LabelSettings" uid="uid://da5nmcp60f4jx" path="res://assets/godot_resources/perfect_tap_font.tres" id="2_q7vq3"]
+[ext_resource type="AudioStream" uid="uid://buax60usj11ah" path="res://assets/audio/slideup.mp3" id="4_5mrwv"]
+[ext_resource type="AudioStream" uid="uid://cfqecmh77n3am" path="res://assets/audio/pop.wav" id="4_q7vq3"]
+[ext_resource type="AudioStream" uid="uid://crx3owk46gm3k" path="res://assets/audio/maximize_006.ogg" id="6_cojaj"]
 
-[node name="Control" type="Control" parent="."]
+[sub_resource type="Gradient" id="Gradient_q7vq3"]
+offsets = PackedFloat32Array(0, 0.48770493, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_1kj6d"]
+gradient = SubResource("Gradient_q7vq3")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_5mrwv"]
+particle_flag_disable_z = true
+emission_shape = 6
+emission_ring_axis = Vector3(0, 0, 1)
+emission_ring_height = 1.0
+emission_ring_radius = 50.0
+emission_ring_inner_radius = 30.0
+emission_ring_cone_angle = 90.0
+spread = 180.0
+radial_velocity_min = 999.99994
+radial_velocity_max = 999.99994
+gravity = Vector3(0, 0, 0)
+scale_min = 0.099999994
+scale_max = 0.099999994
+color_ramp = SubResource("GradientTexture1D_1kj6d")
+
+[node name="GrowthChain" type="Node2D" unique_id=1156795293]
+script = ExtResource("1_")
+grow_rate = 0.3
+float_duration = 2.0
+float_height = 1200.0
+sway_amplitude = 90.0
+
+[node name="Background" type="ColorRect" parent="." unique_id=583069496]
 custom_minimum_size = Vector2(1080, 1920)
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="ColorRect" type="ColorRect" parent="Control"]
-layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 1080.0
+offset_bottom = 1920.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.4, 1, 0.4, 1)
+color = Color(0.78309196, 0.55960584, 0.84344953, 1)
+
+[node name="RoundScore" type="Label" parent="Background" unique_id=1496000929]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_top = 115.0
+offset_right = 1.0
+offset_bottom = 149.0
+grow_horizontal = 2
+label_settings = ExtResource("2_q7vq3")
+
+[node name="TotalScore" type="Label" parent="Background" unique_id=15901773]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -0.5
+offset_right = 0.5
+offset_bottom = 34.0
+grow_horizontal = 2
+label_settings = ExtResource("2_q7vq3")
+
+[node name="StatusLabel" type="Label" parent="Background" unique_id=208473376]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -0.5
+offset_top = -17.0
+offset_right = 0.5
+offset_bottom = 17.0
+grow_horizontal = 2
+grow_vertical = 2
+label_settings = ExtResource("2_q7vq3")
+
+[node name="Bubble" type="Sprite2D" parent="." unique_id=205016108]
+position = Vector2(540, 990)
+texture = ExtResource("2_l13vc")
+
+[node name="BubbleIndicators" type="Node2D" parent="." unique_id=695137109]
+position = Vector2(540, 1800)
+
+[node name="Bubble" type="Sprite2D" parent="BubbleIndicators" unique_id=775472650]
+position = Vector2(-100, 0)
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("2_l13vc")
+
+[node name="Bubble2" type="Sprite2D" parent="BubbleIndicators" unique_id=1938708295]
+position = Vector2(-50, 0)
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("2_l13vc")
+
+[node name="Bubble3" type="Sprite2D" parent="BubbleIndicators" unique_id=639381240]
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("2_l13vc")
+
+[node name="Bubble4" type="Sprite2D" parent="BubbleIndicators" unique_id=1674254044]
+position = Vector2(50, 0)
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("2_l13vc")
+
+[node name="Bubble5" type="Sprite2D" parent="BubbleIndicators" unique_id=776075639]
+position = Vector2(100, 0)
+scale = Vector2(0.1, 0.1)
+texture = ExtResource("2_l13vc")
+
+[node name="inflate_sound" type="AudioStreamPlayer2D" parent="." unique_id=438937209]
+stream = ExtResource("4_5mrwv")
+volume_db = -15.0
+
+[node name="pop_sound" type="AudioStreamPlayer2D" parent="." unique_id=1021733366]
+stream = ExtResource("4_q7vq3")
+
+[node name="cashout_sound" type="AudioStreamPlayer2D" parent="." unique_id=1257842041]
+stream = ExtResource("6_cojaj")
+
+[node name="Particles" type="GPUParticles2D" parent="." unique_id=131457452]
+position = Vector2(540, 990)
+scale = Vector2(0.25, 0.25)
+emitting = false
+amount = 100
+texture = ExtResource("2_l13vc")
+one_shot = true
+explosiveness = 0.8
+process_material = SubResource("ParticleProcessMaterial_5mrwv")
+
+[node name="Cover" type="ColorRect" parent="." unique_id=83731531]
+custom_minimum_size = Vector2(1080, 1920)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1080.0
+offset_bottom = 1920.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.78309196, 0.55960584, 0.84344953, 1)
