@@ -83,6 +83,7 @@ func _new_puzzle() -> void:
 	_animating = false
 	_path_cells.clear()
 	_flow_progress = 0.0
+	scale = Vector2.ONE  # defensive: reset any in-flight solve-pop scale
 
 	# Set grid size for current level (before grid init)
 	_set_grid_size_for_level()
@@ -138,18 +139,33 @@ func _new_puzzle() -> void:
 			_set_cell(curr.x, curr.y, PipeType.STRAIGHT, 0)
 		elif (cell_in_side + 2) % 4 == cell_out_side:
 			# straight through
-			var rot: int = _straight_rotation_for(cell_in_side, cell_out_side)
-			_set_cell(curr.x, curr.y, PipeType.STRAIGHT, rot)
+			if randf() < 0.3:
+				# Occasionally use T_PIPE (3 openings) — covers opposite sides fine
+				var rot: int = _tpipe_rotation_for(cell_in_side, cell_out_side)
+				_set_cell(curr.x, curr.y, PipeType.T_PIPE, rot)
+			else:
+				var rot: int = _straight_rotation_for(cell_in_side, cell_out_side)
+				_set_cell(curr.x, curr.y, PipeType.STRAIGHT, rot)
 		else:
 			# corner turn
-			var rot: int = _corner_rotation_for(cell_in_side, cell_out_side)
-			_set_cell(curr.x, curr.y, PipeType.CORNER, rot)
+			if randf() < 0.3:
+				# Occasionally use T_PIPE (3 openings) — covers adjacent sides fine
+				var rot: int = _tpipe_rotation_for(cell_in_side, cell_out_side)
+				_set_cell(curr.x, curr.y, PipeType.T_PIPE, rot)
+			else:
+				var rot: int = _corner_rotation_for(cell_in_side, cell_out_side)
+				_set_cell(curr.x, curr.y, PipeType.CORNER, rot)
 
-	# Fill off-path cells with BLANK (non-interactive boxes)
+	# Fill off-path cells: decoy pipes (STRAIGHT or CORNER) mixed with BLANK
 	for row in _grid_rows:
 		for col in _grid_cols:
 			if not _is_path_cell(Vector2i(col, row)):
-				_set_cell(col, row, PipeType.BLANK, 0)
+				if randf() < 0.5:
+					# Decoy pipe — interactive, looks like a real piece
+					var decoy_type: PipeType = PipeType.STRAIGHT if randf() < 0.5 else PipeType.CORNER
+					_set_cell(col, row, decoy_type, 0)
+				else:
+					_set_cell(col, row, PipeType.BLANK, 0)
 
 	# Randomly rotate all cells (including source/dest) to hide solution
 	for row in _grid_rows:
@@ -222,6 +238,18 @@ func _corner_rotation_for(side_a: int, side_b: int) -> int:
 		return side_a % 4
 	else:  # (side_b + 1) % 4 == side_a
 		return side_b % 4
+
+
+# For T_PIPE: base [top, right, bottom, left] opens at 0, 1, 2 (3 consecutive).
+# At rotation r, opens at r, (r+1)%4, (r+2)%4.
+# Returns a rotation r such that the 3 open sides include both side_a and side_b.
+# Guaranteed to find a match since any pair of sides is covered by some 3-consecutive set.
+func _tpipe_rotation_for(side_a: int, side_b: int) -> int:
+	for r in 4:
+		var open_set: Array[int] = [r, (r + 1) % 4, (r + 2) % 4]
+		if side_a in open_set and side_b in open_set:
+			return r
+	return 0  # fallback, should never reach
 
 
 func _is_path_cell(pos: Vector2i) -> bool:
@@ -422,6 +450,12 @@ func _on_solved() -> void:
 	rotate_360(gear)
 	rotate_360(gear2)
 	
+	# Scale-pop celebration: pulse the whole node
+	if is_instance_valid(self):
+		var pop_tween: Tween = create_tween().set_parallel(true)
+		pop_tween.tween_property(self, "scale", Vector2(1.04, 1.04), 0.12).set_ease(Tween.EASE_OUT)
+		pop_tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.15).set_ease(Tween.EASE_IN).set_delay(0.12)
+	
 	# Animate flow along the path
 	var duration: float = max(1.0, _path_cells.size() * 0.12)
 	var flow_tween: Tween = create_tween()
@@ -435,7 +469,10 @@ func _set_flow_progress(v: float) -> void:
 	var prev_cell: int = floori(_flow_progress * _path_cells.size())
 	var new_cell: int = floori(v * _path_cells.size())
 	if new_cell > prev_cell and new_cell < _path_cells.size():
-		flow_sound.play()
+		# Escalate pitch as flow progresses for dramatic payoff
+		if is_instance_valid(flow_sound):
+			flow_sound.pitch_scale = 1.0 + v * 0.5
+			flow_sound.play()
 	_flow_progress = v
 	queue_redraw()
 
@@ -445,6 +482,20 @@ func _on_flow_complete() -> void:
 	level += 1
 	if is_instance_valid(solved_sound):
 		solved_sound.play()
+	
+	# Extra haptic burst on flow complete
+	Haptics.light()
+	
+	# Persistent high score: report best level reached
+	var is_new_best: bool = GameState.report_score("flow_level", level)
+	if is_new_best and is_instance_valid(level_label):
+		# Gold tint celebration on level label
+		var gold: Color = Color(1.0, 0.84, 0.0)
+		var orig_color: Color = level_label.modulate
+		level_label.modulate = gold
+		var cb_tween: Tween = create_tween()
+		cb_tween.tween_property(level_label, "modulate", orig_color, 0.6).set_delay(1.0)
+	
 	_update_labels()
 	queue_redraw()
 
