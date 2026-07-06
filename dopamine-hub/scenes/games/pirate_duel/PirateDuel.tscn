@@ -52,9 +52,13 @@ cannonball_scene = ExtResource("2_n7dbl")
 [node name="Control" type="Control" parent="." unique_id=690141664]
 custom_minimum_size = Vector2(1080, 1920)
 layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1080.0
+offset_bottom = 1920.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="ColorRect" type="ColorRect" parent="Control" unique_id=1590507098]
 layout_mode = 1

@@ -47,7 +47,7 @@ grow_vertical = 2
 [node name="Label" type="Label" parent="BG/VBoxContainer" unique_id=1163397017]
 layout_mode = 2
 size_flags_horizontal = 4
-text = "Dopamine Hub"
+text = "Drift"
 label_settings = SubResource("LabelSettings_npf65")
 
 [node name="VBoxContainer2" type="VBoxContainer" parent="BG" unique_id=80786745]

@@ -10,9 +10,12 @@ config_version=5
 
 [application]
 
-config/name="DopamineHub"
+config/name="Drift"
 run/main_scene="res://scenes/feed_hub/FeedHub.tscn"
 config/features=PackedStringArray("4.6", "Mobile")
+boot_splash/bg_color=Color(0, 0, 0, 1)
+boot_splash/image="uid://bya6d8ycyyrc"
+config/icon="uid://bqk2gdp0hx2ud"
 
 [autoload]
 
@@ -39,3 +42,4 @@ theme/default_theme_scale=1.5
 
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true
