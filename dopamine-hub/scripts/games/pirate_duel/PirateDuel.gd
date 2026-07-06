@@ -21,6 +21,7 @@ const FIRE_POWER: float = 700.0
 @onready var waves1: Sprite2D = $Wave1
 @onready var result_label: Label = $Control/ColorRect/StatusLabel
 
+@onready var aim_overlay: Node2D = $AimOverlay
 @onready var cannon_fire: AudioStreamPlayer2D = $CannonFire
 @onready var cannon_explosion: AudioStreamPlayer2D = $CannonExplosion
 
@@ -98,17 +99,20 @@ func _input(event: InputEvent) -> void:
 			_drag_start = pos
 			_drag_current = pos
 			_is_dragging = true
-			queue_redraw()
+			if is_instance_valid(aim_overlay):
+				aim_overlay.queue_redraw()
 		else:
 			if _is_dragging and _can_fire:
 				_fire_cannonball()
 			_is_dragging = false
-			queue_redraw()
+			if is_instance_valid(aim_overlay):
+				aim_overlay.queue_redraw()
 	
 	elif event is InputEventMouseMotion or event is InputEventScreenDrag:
 		if _is_dragging:
 			_drag_current = event.position
-			queue_redraw()
+			if is_instance_valid(aim_overlay):
+				aim_overlay.queue_redraw()
 
 
 
@@ -245,7 +249,7 @@ func _shake_screen() -> void:
 	shake.tween_property(self, "position:x", 0.0, 0.03)
 
 
-func _draw() -> void:
+func draw_aim_overlay(target: Node2D) -> void:
 	if not _is_dragging or _game_over:
 		return
 	
@@ -280,13 +284,13 @@ func _draw() -> void:
 		if i % 3 != 0:
 			continue
 		var alpha: float = 1.0 - float(i) / float(points.size())
-		draw_circle(points[i], 6.0, Color(1.0, 1.0, 1.0, alpha))
+		target.draw_circle(points[i], 6.0, Color(1.0, 1.0, 1.0, alpha))
 	
 	# Draw rubber-band line showing the pull
 	var pull_dir: Vector2 = -fire_dir  # same as drag direction
 	var pull_len: float = drag_len * 0.3
 	var line_end: Vector2 = start + pull_dir * pull_len
-	draw_line(start, line_end, Color(1.0, 1.0, 1.0, 0.4), 3.0)
+	target.draw_line(start, line_end, Color(1.0, 1.0, 1.0, 0.4), 3.0)
 
 
 func _end_game(player_won: bool) -> void:
