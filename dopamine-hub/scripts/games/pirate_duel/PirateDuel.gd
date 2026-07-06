@@ -37,6 +37,7 @@ var _game_over: bool = false
 var _player_ship_origin: Vector2
 var _ai_ship_origin: Vector2
 var _curtains_y: float
+var _win_streak: int = 0
 
 
 func _ready() -> void:
@@ -57,6 +58,12 @@ func _ready() -> void:
 	
 	# Create HP labels near each ship
 	_update_hp_labels()
+
+
+func _exit_tree() -> void:
+	# Defensive: Engine.time_scale is GLOBAL. If this card is swiped away
+	# mid-cinematic, restore it so the whole app isn't left in slow-mo.
+	Engine.time_scale = 1.0
 
 
 func _process(_delta: float) -> void:
@@ -91,14 +98,17 @@ func _input(event: InputEvent) -> void:
 			_drag_start = pos
 			_drag_current = pos
 			_is_dragging = true
+			queue_redraw()
 		else:
 			if _is_dragging and _can_fire:
 				_fire_cannonball()
 			_is_dragging = false
+			queue_redraw()
 	
 	elif event is InputEventMouseMotion or event is InputEventScreenDrag:
 		if _is_dragging:
 			_drag_current = event.position
+			queue_redraw()
 
 
 
@@ -131,7 +141,7 @@ func _fire_cannonball() -> void:
 
 
 func _on_cannonball_hit(other: Area2D, ball: Area2D) -> void:
-	if not is_instance_valid(ball):
+	if _game_over or not is_instance_valid(ball):
 		return
 	
 	var hit_pos: Vector2 = ball.global_position
@@ -144,7 +154,9 @@ func _on_cannonball_hit(other: Area2D, ball: Area2D) -> void:
 		_shake_screen()
 		ball.queue_free()
 		if player_hp <= 0:
-			_end_game(false)
+			_game_over = true
+			ai_timer.stop()
+			_start_cinematic(false, hit_pos)
 		return
 	
 	if other.is_in_group("ai_ship") and ball.from_player:
@@ -153,7 +165,9 @@ func _on_cannonball_hit(other: Area2D, ball: Area2D) -> void:
 		_trigger_explosion(hit_pos)
 		ball.queue_free()
 		if ai_hp <= 0:
-			_end_game(true)
+			_game_over = true
+			ai_timer.stop()
+			_start_cinematic(true, hit_pos)
 		return
 	
 	# Cannonball hitting another cannonball
@@ -189,8 +203,27 @@ func _on_ai_timer() -> void:
 	
 	cannon_fire.play()
 	
-	# Next shot in 2-4 seconds
-	ai_timer.start(randf_range(2.0, 4.0))
+	# Escalating AI: faster fire rate as player win streak grows
+	var lo: float = maxf(2.0 - _win_streak * 0.2, 0.6)
+	var hi: float = maxf(4.0 - _win_streak * 0.3, 1.2)
+	ai_timer.start(randf_range(lo, hi))
+
+
+func _start_cinematic(player_won: bool, _hit_pos: Vector2) -> void:
+	# Slow-motion effect
+	Engine.time_scale = 0.35
+	
+	# Faked zoom - small scale pulse
+	var zoom_tween: Tween = create_tween()
+	zoom_tween.set_trans(Tween.TRANS_SINE)
+	zoom_tween.tween_property(self, "scale", Vector2(1.15, 1.15), 0.2)
+	
+	# Restore time scale after real-time delay, then end game
+	get_tree().create_timer(0.45, true, false, true).timeout.connect(func():
+		Engine.time_scale = 1.0
+		self.scale = Vector2(1, 1)
+		_end_game(player_won)
+	, CONNECT_ONE_SHOT)
 
 
 func _trigger_explosion(pos: Vector2) -> void:
@@ -212,15 +245,62 @@ func _shake_screen() -> void:
 	shake.tween_property(self, "position:x", 0.0, 0.03)
 
 
+func _draw() -> void:
+	if not _is_dragging or _game_over:
+		return
+	
+	var drag_vec: Vector2 = _drag_current - _drag_start
+	if drag_vec.length() <= 0:
+		return
+	
+	var drag_len: float = min(drag_vec.length(), MAX_DRAG_LENGTH)
+	var fire_dir: Vector2 = -drag_vec.normalized()
+	var power: float = FIRE_POWER * (0.5 + 0.5 * drag_len / MAX_DRAG_LENGTH)
+	var velocity: Vector2 = fire_dir * power
+	
+	var start: Vector2 = to_local(player_ship_sprite.global_position)
+	
+	# Simulate projectile arc
+	const GRAVITY: float = 600.0
+	const DT: float = 1.0 / 60.0
+	const STEPS: int = 90
+	var p: Vector2 = start
+	var v: Vector2 = velocity
+	var points: Array[Vector2] = []
+	
+	for i in range(STEPS):
+		v.y += GRAVITY * DT
+		p += v * DT
+		if p.y > SCREEN_H or p.x < -50 or p.x > SCREEN_W + 50:
+			break
+		points.append(p)
+	
+	# Draw dotted arc (every 3rd point, fading alpha)
+	for i in range(points.size()):
+		if i % 3 != 0:
+			continue
+		var alpha: float = 1.0 - float(i) / float(points.size())
+		draw_circle(points[i], 6.0, Color(1.0, 1.0, 1.0, alpha))
+	
+	# Draw rubber-band line showing the pull
+	var pull_dir: Vector2 = -fire_dir  # same as drag direction
+	var pull_len: float = drag_len * 0.3
+	var line_end: Vector2 = start + pull_dir * pull_len
+	draw_line(start, line_end, Color(1.0, 1.0, 1.0, 0.4), 3.0)
+
+
 func _end_game(player_won: bool) -> void:
 	_game_over = true
 	ai_timer.stop()
 	
 	result_label.visible = true
 	if player_won:
-		result_label.text = "YOU WIN!"
+		_win_streak += 1
+		GameState.report_score("pirate_duel_streak", _win_streak)
+		result_label.text = "YOU WIN!\n%d streak! (Best: %d)" % [_win_streak, GameState.get_high_score("pirate_duel_streak")]
 	else:
-		result_label.text = "YOU LOSE!"
+		result_label.text = "YOU LOSE!\nBest streak: %d" % GameState.get_high_score("pirate_duel_streak")
+		_win_streak = 0
 	
 	# Sink losing ship + drop curtains
 	var loser: Area2D = ai_ship if player_won else player_ship
@@ -236,6 +316,10 @@ func _end_game(player_won: bool) -> void:
 
 
 func _reset_after_curtain() -> void:
+	# Restore time scale and zoom in case cinematic was interrupted
+	Engine.time_scale = 1.0
+	self.scale = Vector2(1, 1)
+	
 	# Reset ship positions
 	player_ship.position = _player_ship_origin
 	ai_ship.position = _ai_ship_origin
@@ -268,6 +352,8 @@ func _on_curtains_up() -> void:
 
 
 func _restart_game() -> void:	
+	Engine.time_scale = 1.0
+	self.scale = Vector2(1, 1)
 	# Reset ship positions
 	player_ship.position = _player_ship_origin
 	ai_ship.position = _ai_ship_origin
