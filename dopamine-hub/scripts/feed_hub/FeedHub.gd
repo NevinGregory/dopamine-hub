@@ -4,7 +4,9 @@ enum CardType { GAME, AD }
 
 const AD_CARD_SCENE: String = "res://scenes/ads/AdCard.tscn"
 const STARTUP_SCENE: String = "res://scenes/feed_hub/Startup.tscn"
-const SWIPE_THRESHOLD: float = 60.0
+const DESIGN_RESOLUTION: Vector2 = Vector2(1080, 1920)
+const SWIPE_THRESHOLD: float = 20.0
+const EDGE_ZONE_RATIO: float = 0.12
 
 var all_games: Array[String] = [
 	"res://scenes/games/perfect_tap/PerfectTap.tscn",
@@ -34,9 +36,13 @@ var _card_offset: float = 0.0
 var _touch_start_pos: Vector2 = Vector2.ZERO
 var _is_swiping: bool = false
 var _is_horizontal_swiping: bool = false
+var _swipe_from_edge: bool = false
 var _trans_tween: Tween
 var _transitioning: bool = false
 var _glow_fade_tween: Tween = null
+
+# Tracks which scene paths have been requested for threaded background loading
+var _threaded_requests: Dictionary = {}
 
 @onready var _world_env: WorldEnvironment = $WorldEnvironment
 
@@ -70,6 +76,8 @@ func _ready() -> void:
 		cover_tween.set_trans(Tween.TRANS_SINE)
 		cover_tween.set_ease(Tween.EASE_OUT)
 		cover_tween.tween_property(cover, "modulate:a", 0.0, 0.3)
+	
+	_preload_neighbor_cards()
 
 
 func _get_viewport_size() -> Vector2:
@@ -104,18 +112,24 @@ func _on_gui_input(event: InputEvent) -> void:
 	var is_drag: bool = false
 	var pos: Vector2 = Vector2.ZERO
 	
-	if event is InputEventMouseButton:
-		is_press = event.pressed
-		is_release = not event.pressed
-		pos = event.position
-	elif event is InputEventScreenTouch:
+	# On iOS, each tap generates BOTH InputEventScreenTouch and InputEventMouseButton.
+	# Process touch events first; skip synthesized mouse events on touch devices.
+	if event is InputEventScreenTouch:
 		is_press = event.pressed
 		is_release = not event.pressed
 		pos = event.position
 	elif event is InputEventScreenDrag:
 		is_drag = true
 		pos = event.position
+	elif event is InputEventMouseButton:
+		if DisplayServer.is_touchscreen_available():
+			return
+		is_press = event.pressed
+		is_release = not event.pressed
+		pos = event.position
 	elif event is InputEventMouseMotion and (event.button_mask & MOUSE_BUTTON_MASK_LEFT):
+		if DisplayServer.is_touchscreen_available():
+			return
 		is_drag = true
 		pos = event.position
 	
@@ -123,6 +137,7 @@ func _on_gui_input(event: InputEvent) -> void:
 		_touch_start_pos = pos
 		_is_swiping = false
 		_is_horizontal_swiping = false
+		_swipe_from_edge = _is_in_edge_zone(pos.x)
 		_forward_press(pos)
 	elif is_release:
 		var dy: float = pos.y - _touch_start_pos.y
@@ -143,7 +158,7 @@ func _on_gui_input(event: InputEvent) -> void:
 		var dy: float = pos.y - _touch_start_pos.y
 		
 		if not _is_swiping and not _is_horizontal_swiping:
-			if abs(dy) > SWIPE_THRESHOLD:
+			if abs(dy) > SWIPE_THRESHOLD and _swipe_from_edge:
 				_is_swiping = true
 				_forward_release(pos)  # cancel hold on current card
 				accept_event()
@@ -232,6 +247,7 @@ func _on_advance_next() -> void:
 		cover_tween.set_ease(Tween.EASE_OUT)
 		cover_tween.tween_property(cover, "modulate:a", 0.0, 0.3)
 	
+	_preload_neighbor_cards()
 	_transitioning = false
 
 
@@ -259,6 +275,7 @@ func _on_advance_prev() -> void:
 		cover_tween.set_ease(Tween.EASE_OUT)
 		cover_tween.tween_property(cover, "modulate:a", 0.0, 0.3)
 	
+	_preload_neighbor_cards()
 	_transitioning = false
 
 
@@ -277,6 +294,7 @@ func _on_snap_done() -> void:
 		cover_tween.set_ease(Tween.EASE_OUT)
 		cover_tween.tween_property(cover, "modulate:a", 0.0, 0.3)
 	
+	_preload_neighbor_cards()
 	_transitioning = false
 
 
@@ -292,6 +310,12 @@ func _forward_press(pos: Vector2) -> void:
 		return
 	
 	var local_pos: Vector2 = pos - card.position
+	# scale from on-screen card rect into the SubViewport's internal design resolution
+	var card_w: float = _card_height * 9.0 / 16.0
+	var card_h: float = _card_height
+	if card_w > 0.0 and card_h > 0.0:
+		local_pos.x = local_pos.x / card_w * DESIGN_RESOLUTION.x
+		local_pos.y = local_pos.y / card_h * DESIGN_RESOLUTION.y
 	var ev: InputEventMouseButton = InputEventMouseButton.new()
 	ev.button_index = MOUSE_BUTTON_LEFT
 	ev.pressed = true
@@ -309,6 +333,12 @@ func _forward_release(pos: Vector2) -> void:
 		return
 	
 	var local_pos: Vector2 = pos - card.position
+	# scale from on-screen card rect into the SubViewport's internal design resolution
+	var card_w: float = _card_height * 9.0 / 16.0
+	var card_h: float = _card_height
+	if card_w > 0.0 and card_h > 0.0:
+		local_pos.x = local_pos.x / card_w * DESIGN_RESOLUTION.x
+		local_pos.y = local_pos.y / card_h * DESIGN_RESOLUTION.y
 	var ev: InputEventMouseButton = InputEventMouseButton.new()
 	ev.button_index = MOUSE_BUTTON_LEFT
 	ev.pressed = false
@@ -326,6 +356,12 @@ func _forward_drag(pos: Vector2) -> void:
 		return
 	
 	var local_pos: Vector2 = pos - card.position
+	# scale from on-screen card rect into the SubViewport's internal design resolution
+	var card_w: float = _card_height * 9.0 / 16.0
+	var card_h: float = _card_height
+	if card_w > 0.0 and card_h > 0.0:
+		local_pos.x = local_pos.x / card_w * DESIGN_RESOLUTION.x
+		local_pos.y = local_pos.y / card_h * DESIGN_RESOLUTION.y
 	
 	var drag: InputEventScreenDrag = InputEventScreenDrag.new()
 	drag.position = local_pos
@@ -417,7 +453,11 @@ func _build_card(scene_path: String) -> SubViewportContainer:
 	svc.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	var vp: SubViewport = SubViewport.new()
-	vp.size = card_size
+	# stretch=true on the container forces vp.size to the card pixel rect and
+	# prohibits changing it. Use size_2d_override to render the 2D world in a
+	# fixed 1080x1920 logical space regardless of the card's pixel size.
+	vp.size_2d_override = Vector2i(DESIGN_RESOLUTION)
+	vp.size_2d_override_stretch = true
 	vp.transparent_bg = false
 	vp.handle_input_locally = true
 	vp.audio_listener_enable_2d = true
@@ -429,13 +469,48 @@ func _build_card(scene_path: String) -> SubViewportContainer:
 	return svc
 
 
+func _preload_neighbor_cards() -> void:
+	"""Begin threaded background loading of scene resources for neighbor cards."""
+	for i in [0, 2]:
+		var card: SubViewportContainer = _cards[i]
+		if not is_instance_valid(card) or card.get_child_count() == 0:
+			continue
+		var vp: SubViewport = card.get_child(0)
+		if not vp:
+			continue
+		var path: String = vp.get_meta("scene_path", "")
+		if not path:
+			continue
+		if _threaded_requests.has(path):
+			continue
+		var status: int = ResourceLoader.load_threaded_get_status(path)
+		if status == ResourceLoader.THREAD_LOAD_LOADED or status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			_threaded_requests[path] = true
+			continue
+		var err: int = ResourceLoader.load_threaded_request(path)
+		if err == OK:
+			_threaded_requests[path] = true
+
+
 func _ensure_card_loaded(vp: SubViewport) -> void:
 	if vp.get_child_count() > 0:
 		return  # already loaded
 	var path: String = vp.get_meta("scene_path", "")
 	if not path:
 		return
-	var scene: PackedScene = load(path)
+	
+	var scene: PackedScene = null
+	var status: int = ResourceLoader.load_threaded_get_status(path)
+	
+	if status == ResourceLoader.THREAD_LOAD_LOADED:
+		scene = ResourceLoader.load_threaded_get(path)
+	elif status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+		# Blocks until done, but reuses the in-flight background work
+		scene = ResourceLoader.load_threaded_get(path)
+	else:
+		# No request was ever made — fall back to synchronous load
+		scene = load(path)
+	
 	if not scene:
 		return
 	var inst: Node = scene.instantiate()
@@ -443,6 +518,10 @@ func _ensure_card_loaded(vp: SubViewport) -> void:
 	inst.set_process(false)
 	inst.set_physics_process(false)
 	inst.set_process_input(false)
+	
+	# Clean up tracking entry so memory doesn't grow unbounded
+	if _threaded_requests.has(path):
+		_threaded_requests.erase(path)
 
 
 # ── Card lifecycle ──
@@ -524,6 +603,12 @@ func _update_environment_for_active_card() -> void:
 		_glow_fade_tween.set_trans(Tween.TRANS_SINE)
 		_glow_fade_tween.set_ease(Tween.EASE_OUT)
 		_glow_fade_tween.tween_property(_world_env.environment, "glow_intensity", target_intensity, 0.15)
+
+
+func _is_in_edge_zone(x_pos: float) -> bool:
+	var w: float = size.x
+	var edge: float = w * EDGE_ZONE_RATIO
+	return x_pos <= edge or x_pos >= w - edge
 
 
 func _kill_tween() -> void:

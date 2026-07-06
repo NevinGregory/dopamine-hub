@@ -80,6 +80,7 @@ func _update_hp_labels() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	
 	if _game_over:
 		return
 	
@@ -123,6 +124,7 @@ func _fire_cannonball() -> void:
 	ball.area_entered.connect(_on_cannonball_hit.bind(ball))
 	
 	cannon_fire.play()
+	Haptics.light()
 	
 	# Short cooldown between shots
 	get_tree().create_timer(1.0).timeout.connect(func(): _can_fire = true, CONNECT_ONE_SHOT)
@@ -193,6 +195,7 @@ func _on_ai_timer() -> void:
 
 func _trigger_explosion(pos: Vector2) -> void:
 	cannon_explosion.play()
+	Haptics.heavy()
 	if not is_instance_valid(particles):
 		return
 	particles.global_position = pos

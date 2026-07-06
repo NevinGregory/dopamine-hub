@@ -17,6 +17,7 @@ config/features=PackedStringArray("4.6", "Mobile")
 [autoload]
 
 AdManager="*res://scripts/managers/AdManager.gd"
+Haptics="*res://scripts/managers/Haptics.gd"
 
 [display]
 

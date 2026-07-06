@@ -52,6 +52,7 @@ func _start_orb() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	
 	if (event is InputEventMouseButton and event.pressed) or \
 	   (event is InputEventScreenTouch and event.pressed):
 		_on_tap()
@@ -76,6 +77,7 @@ func _on_hit(_tap_x: float) -> void:
 	# print("Perfect Tap: HIT  — score: %d, speed: %.1f" % [score, current_speed])
 	_play_random_hit()
 	_spawn_outline_effect(Vector2(_tap_x, orb_area.position.y))
+	Haptics.light()
 
 
 func _spawn_outline_effect(pos: Vector2) -> void:
@@ -127,6 +129,7 @@ func _on_miss() -> void:
 	_fade_out_rings()
 	_shake_screen()
 	_start_orb()
+	Haptics.heavy()
 
 
 func _fade_out_rings() -> void:

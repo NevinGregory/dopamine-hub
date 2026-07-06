@@ -314,6 +314,7 @@ func _get_connections(pipe_type: PipeType, r: int) -> Array[bool]:
 
 
 func _input(event: InputEvent) -> void:
+	
 	if _animating or _solved:
 		return
 
@@ -331,6 +332,7 @@ func _input(event: InputEvent) -> void:
 			if grid[idx].pipe_type == PipeType.BLANK:
 				return
 			click_sound.playing = true
+			Haptics.light()
 			_rotate_cell(col, row)
 			if _validate_flow():
 				_on_solved()
@@ -416,6 +418,7 @@ func _on_solved() -> void:
 	_animating = true
 	_flow_progress = 0.0
 	
+	Haptics.success()
 	rotate_360(gear)
 	rotate_360(gear2)
 	

@@ -104,6 +104,7 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	
 	if _game_over:
 		if (event is InputEventMouseButton and event.pressed) or \
 		   (event is InputEventScreenTouch and event.pressed):
@@ -142,6 +143,7 @@ func _pop_bubble() -> void:
 	particles.position = bubble.position
 	particles.restart()
 	pop_sound.play()
+	Haptics.heavy()
 	_update_indicators()
 	
 	get_tree().create_timer(0.6).timeout.connect(_advance_bubble)
@@ -157,6 +159,7 @@ func _cash_out() -> void:
 	var points: int = int(_current_scale * 10)
 	_total_score += points
 	cashout_sound.play()
+	Haptics.success()
 	
 	round_score_label.text = "+%d" % points
 	_update_labels()
