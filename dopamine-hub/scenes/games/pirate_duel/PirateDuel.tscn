@@ -14,7 +14,7 @@
 [ext_resource type="AudioStream" uid="uid://d0pnt50bhrhet" path="res://assets/audio/pirate_ambience.mp3" id="12_xro3y"]
 [ext_resource type="AudioStream" uid="uid://cfqecmh77n3am" path="res://assets/audio/pop.wav" id="13_jj1eg"]
 [ext_resource type="AudioStream" uid="uid://cgym4jmoc7rgt" path="res://assets/audio/explosion.wav" id="14_jj1eg"]
-[ext_resource type="Script" path="res://scripts/games/pirate_duel/AimOverlay.gd" id="15_nttp7"]
+[ext_resource type="Script" uid="uid://bjt44tvf1bqq3" path="res://scripts/games/pirate_duel/AimOverlay.gd" id="15_nttp7"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_m72da"]
 size = Vector2(554.9166, 227.5)
@@ -189,7 +189,7 @@ volume_db = -20.0
 [node name="CannonExplosion" type="AudioStreamPlayer2D" parent="." unique_id=1062705758]
 stream = ExtResource("14_jj1eg")
 
-[node name="AimOverlay" type="Node2D" parent="."]
+[node name="AimOverlay" type="Node2D" parent="." unique_id=2016483205]
 z_index = 4
 script = ExtResource("15_nttp7")
 
