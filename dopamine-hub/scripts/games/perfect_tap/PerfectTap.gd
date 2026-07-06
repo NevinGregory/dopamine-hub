@@ -2,6 +2,7 @@ extends Node2D
 
 @onready var orb_area: Sprite2D = $Orb
 @onready var score_label: Label = $Background/ScoreLabel
+@onready var combo_label: Label = $Background/ComboLabel
 @onready var orb_outline: Sprite2D = $OrbOutline
 @onready var hit_sounds: Node = $hit_sounds
 @onready var miss_sound_audio: AudioStreamPlayer2D = $miss_sound
@@ -15,6 +16,8 @@ extends Node2D
 var base_speed: float = 300.0
 var current_speed: float = 300.0
 var score: int = 0
+var combo: int = 0
+var _best_combo: int = 0
 var screen_size: Vector2
 var _heading_right: bool = true
 var _last_hit_index: int = -1
@@ -62,37 +65,64 @@ func _input(event: InputEvent) -> void:
 func _on_tap() -> void:
 	var tap_x: float = orb_area.position.x
 	var threshold: float = screen_size.x * 0.1
+	var perfect_threshold: float = screen_size.x * 0.035
 	var dist: float = abs(tap_x - screen_size.x / 2.0)
 	
-	if dist < threshold:
-		_on_hit(tap_x)
+	if dist < perfect_threshold:
+		_on_hit(tap_x, true)
+	elif dist < threshold:
+		_on_hit(tap_x, false)
 	else:
 		_on_miss()
 
 
-func _on_hit(_tap_x: float) -> void:
-	score += 1
+func _on_hit(_tap_x: float, is_perfect: bool) -> void:
+	combo += 1
+	var mult: int = clampi(1 + combo / 5, 1, 5)
+	var points: int = (2 if is_perfect else 1) * mult
+	score += points
 	score_label.text = str(score)
+	
+	# High score check — flash on new best
+	if GameState.report_score("perfect_tap", score):
+		_score_best_flash()
+	
 	_increase_speed()
-	# print("Perfect Tap: HIT  — score: %d, speed: %.1f" % [score, current_speed])
-	_play_random_hit()
-	_spawn_outline_effect(Vector2(_tap_x, orb_area.position.y))
-	Haptics.light()
+	_play_random_hit(is_perfect)
+	_spawn_outline_effect(Vector2(_tap_x, orb_area.position.y), 1.4 if is_perfect else 1.0)
+	
+	# Combo label
+	var prev_mult: int = clampi(1 + (combo - 1) / 5, 1, 5)
+	if is_instance_valid(combo_label):
+		if mult > 1:
+			combo_label.text = "x%d" % mult
+			if mult > prev_mult:
+				_combo_pop_tween()
+		else:
+			combo_label.text = ""
+	
+	if is_perfect:
+		Haptics.medium()
+	else:
+		Haptics.light()
 
 
-func _spawn_outline_effect(pos: Vector2) -> void:
+func _spawn_outline_effect(pos: Vector2, size_mult: float = 1.0) -> void:
 	if not is_instance_valid(orb_outline):
 		return
 	
 	var clone: Sprite2D = orb_outline.duplicate()
 	clone.position = pos
 	clone.self_modulate.a = 1.0
+	if size_mult >= 1.3:
+		clone.self_modulate = Color(1.0, 0.95, 0.7, 1.0)
 	clone.visible = true
 	add_child(clone)
 	
+	var target_scale: float = 30.0 * size_mult
 	var grow: Tween = create_tween()
 	grow.set_trans(Tween.TRANS_SINE)
-	grow.tween_property(clone, "scale", Vector2(30, 30), outline_grow_duration)
+	grow.tween_property(clone, "scale", Vector2(target_scale, target_scale), outline_grow_duration)
 	grow.tween_property(clone, "self_modulate:a", 0.0, outline_grow_duration * 0.7)
 	
 	get_tree().create_timer(5.0).timeout.connect(clone.queue_free.bind(), CONNECT_ONE_SHOT)
@@ -101,7 +131,7 @@ func _spawn_outline_effect(pos: Vector2) -> void:
 	clone.set_meta("grow_tween", grow)
 
 
-func _play_random_hit() -> void:
+func _play_random_hit(is_perfect: bool = false) -> void:
 	var children: Array[Node] = hit_sounds.get_children()
 	if children.is_empty():
 		return
@@ -116,12 +146,14 @@ func _play_random_hit() -> void:
 	var chosen: int = randi() % pool.size()
 	var player: AudioStreamPlayer2D = pool[chosen]
 	_last_hit_index = children.find(player)
+	player.pitch_scale = clampf(1.0 + combo * 0.03 + (0.15 if is_perfect else 0.0), 1.0, 2.0)
 	player.play()
 
 
 func _on_miss() -> void:
-	score = 0
-	score_label.text = "0"
+	combo = 0
+	if is_instance_valid(combo_label):
+		combo_label.text = ""
 	current_speed = base_speed
 	miss_sound_audio.play()
 	miss_particles.position = orb_area.position
@@ -165,6 +197,28 @@ func _increase_speed() -> void:
 		current_speed += floor(mid_curve_strength / current_speed)
 	else:
 		current_speed += 40.0
+
+
+func _score_best_flash() -> void:
+	if not is_instance_valid(score_label):
+		return
+	var pop: Tween = create_tween()
+	pop.set_trans(Tween.TRANS_BACK)
+	pop.tween_property(score_label, "scale", Vector2(1.5, 1.5), 0.15)
+	pop.tween_property(score_label, "scale", Vector2(1.0, 1.0), 0.25)
+	
+	var color_tween: Tween = create_tween()
+	color_tween.tween_property(score_label, "self_modulate", Color(1.0, 0.84, 0.0, 1.0), 0.15)
+	color_tween.tween_property(score_label, "self_modulate", Color(1.0, 1.0, 1.0, 1.0), 0.4)
+
+
+func _combo_pop_tween() -> void:
+	if not is_instance_valid(combo_label):
+		return
+	var pop: Tween = create_tween()
+	pop.set_trans(Tween.TRANS_BACK)
+	pop.tween_property(combo_label, "scale", Vector2(1.6, 1.6), 0.1)
+	pop.tween_property(combo_label, "scale", Vector2(1.0, 1.0), 0.2)
 
 
 func get_env_overrides() -> Dictionary:
