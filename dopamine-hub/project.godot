@@ -21,6 +21,7 @@ config/icon="uid://bqk2gdp0hx2ud"
 
 AdManager="*res://scripts/managers/AdManager.gd"
 Haptics="*res://scripts/managers/Haptics.gd"
+GameState="*res://scripts/managers/GameState.gd"
 
 [display]
 
